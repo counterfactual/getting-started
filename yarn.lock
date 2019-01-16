@@ -1618,6 +1618,11 @@ openurl@1.1.1:
   resolved "https://registry.yarnpkg.com/openurl/-/openurl-1.1.1.tgz#3875b4b0ef7a52c156f0db41d4609dbb0f94b387"
   integrity sha1-OHW0sO96UsFW8NtB1GCduw+Us4c=
 
+openzeppelin-solidity@^2.1.1:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/openzeppelin-solidity/-/openzeppelin-solidity-2.1.1.tgz#a929b63f30846ff429354a510a719624d7f4abc2"
+  integrity sha512-kvVI/2n3oYfVYP53rUw+q6QNPlorwYRFaGu/Zs+TWFw2tKlnrz7UXh0UTWYd3Sfbq6eOo4XXnGv4bgcKguOrWg==
+
 opn@5.3.0:
   version "5.3.0"
   resolved "https://registry.yarnpkg.com/opn/-/opn-5.3.0.tgz#64871565c863875f052cfdf53d3e3cb5adb53b1c"
