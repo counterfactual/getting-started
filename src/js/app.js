@@ -1,3 +1,63 @@
+var app = cfjs.AppFactory('0x2380938509324ajfskdfja1ajsd390842934');
+
+app.on('updatedState', function(newState) {
+  console.log('the bot moved and the new state is: ', newState);
+  // the game is over, let's see who won?
+  if (newState.playerSecondNumber > newState.playerFirstNumber) {
+    document.getElementById('message').innerText = 'YOU LOSE!'; 
+  } else {
+    document.getElementById('message').innerText = 'YOU WIN!';
+  }
+});
+
+app.on('install', function() {
+  app.takeAction('START_GAME');
+  document.getElementById('rollDiceButton').show();
+});
+
+function startGame() {
+  app.proposeInstall('0xTHEBOTWEAREPLAYINGAGAINST12348912834');
+}
+
+function rollDice() {
+  app.takeAction('COMMIT_TO_HASH', {actionHash: keccak256(salt + Math.random() % 12)});
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 App = {
   web3Provider: null,
   contracts: {},
@@ -103,3 +163,6 @@ $(function() {
     App.init();
   });
 });
+
+
+
