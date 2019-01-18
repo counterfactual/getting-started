@@ -18,15 +18,46 @@
     <![endif]-->
   </head>
   <body>
-    
-    <button onclick="startGame()">Start game</button>
+    <div id="message"></div>
+    <button id="startGameButton" onclick="startGame()">Start game</button>
+    <button id="rollDiceButton" class="hide" onclick="rollDice()">Roll dice</button>
 
-    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-    <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <script src="js/bootstrap.min.js"></script>
     <script src="js/web3.min.js"></script>
     <script src="js/truffle-contract.js"></script>
-    <script src="js/app.js"></script>
+
+    <script>
+      var app = new cf.AppFactory('0xABC1239804394sdf9sadfjl12398'); // create a connection between JS and the deployed contract
+
+      function startGame() {
+        app.proposeInstall({
+          to: '0xTheBotsAddress92084923408908' // our deployed bot player's address
+        });
+        
+        app.takeAction('START_GAME');
+      }
+      
+      function rollDice() {
+        var diceRoll =  Math.random() % 12;
+        app.takeAction('COMMIT_TO_HASH', {actionHash: keccak256(salt + diceRoll)});
+        
+        document.getElementById('rollDiceButton').hide();
+        document.getElementById('message').innerText = `You rolled a ${diceRoll}!`;
+      }
+      
+      app.on('install', function() {
+        document.getElementById('startGameButton').hide();
+        document.getElementById('rollDiceButton').show();
+      });
+      
+      app.on('updatedState', function(newState) {
+        document.getElementById('message').innerText = `The bot rolled a ${newState.secondPlayerNumber}!`;
+        if (newState.secondPlayerNumber > newState.firstPlayerNumber) {
+          document.getElementById('message').innerText = 'You lose!';
+        } else {
+          document.getElementById('message').innerText = 'You win!'; 
+        }
+      });
+    </script>
+    
   </body>
 </html>
