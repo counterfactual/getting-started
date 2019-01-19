@@ -1,4 +1,4 @@
-var app = cf.AppFactory("0x2380938509324ajfskdfja1ajsd390842934");
+var app = new cf.AppFactory("0x2380938509324ajfskdfja1ajsd390842934");
 
 app.on("updatedState", function(newState) {
   // eslint-disable-next-line
