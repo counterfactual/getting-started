@@ -1,0 +1,7 @@
+**/*.min.js
+truffle-contract.js
+truffle-config.js
+cfjs-iife.js
+ethers.js
+eventemitter3.js
+types-iife.js
