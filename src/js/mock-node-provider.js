@@ -82,4 +82,3 @@ class NodeProvider {
     });
   }
 }
-window.MockNodeProvider = NodeProvider;
