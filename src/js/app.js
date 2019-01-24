@@ -1,29 +1,65 @@
-var app = new cf.AppFactory("0x2380938509324ajfskdfja1ajsd390842934");
+var nodeProvider = new NodeProvider();
+var appFactory;
+nodeProvider.connect().then(setupCfProvider)
 
-app.on("updatedState", function(newState) {
+function setupCfProvider(provider) {
+  var cfProvider = new cf.Provider(nodeProvider);
+  cfProvider.on("updateState", onUpdateState);
+  cfProvider.on("install", onInstall);
+
+  appFactory = new cf.AppFactory("0x2380938509324ajfskdfja1ajsd390842934", {}, cfProvider);
+
+  var betAmount = "0.01";
+  var initialState = {
+    playerAddrs: [
+      "0x54321",
+      "0x12345"
+    ],
+    stage: 0,
+    salt: ethers.constants.HashZero,
+    commitHash: ethers.constants.HashZero,
+    playerFirstNumber: 0,
+    playerSecondNumber: 0
+  };
+
+  appFactory.proposeInstallVirtual({
+    initialState,
+    respondingAddress: "0x12345",
+    asset: {
+      assetType: 0 /* AssetType.ETH */
+    },
+    peerDeposit: ethers.utils.parseEther(betAmount),
+    myDeposit: ethers.utils.parseEther(betAmount),
+    timeout: 10000,
+    intermediaries: ["0x123123123"]
+  });
+}
+
+function onUpdateState(data) {
   // eslint-disable-next-line
-    console.log('the bot moved and the new state is: ', newState);
+  console.log('the bot moved and the new state is: ', newStdataate);
   // the game is over, let's see who won?
-  if (newState.playerSecondNumber > newState.playerFirstNumber) {
+  if (data.playerSecondNumber > data.playerFirstNumber) {
     document.getElementById("message").innerText = "YOU LOSE!";
   } else {
     document.getElementById("message").innerText = "YOU WIN!";
   }
-});
+}
 
-app.on("install", function() {
-  app.takeAction("START_GAME");
+function onInstall(data) {
+  console.log("On Install Callback")
+  appFactory.takeAction("START_GAME");
   document.getElementById("rollDiceButton").show();
-});
+}
 
 window.startGame = function startGame() {
-  app.proposeInstall("0xTHEBOTWEAREPLAYINGAGAINST12348912834");
+  appFactory.proposeInstall("0xTHEBOTWEAREPLAYINGAGAINST12348912834");
 };
 
 window.rollDice = function rollDice() {
   var salt =
     "0xdfdaa4d168f0be935a1e1d12b555995bc5ea67bd33fce1bc5be0a1e0a381fc90";
-  app.takeAction("COMMIT_TO_HASH", {
+  appFactory.takeAction("COMMIT_TO_HASH", {
     actionHash: ethers.utils.keccak256(salt + (Math.random() % 12))
   });
 };
