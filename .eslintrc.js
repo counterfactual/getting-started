@@ -18,6 +18,10 @@ module.exports = {
     globals: {
         cf: true,
         ethers: true,
-        NodeProvider: true
+        NodeProvider: true,
+        web3: true,
+        Web3: true,
+        $: true,
+        ethereum: true
     }
 };

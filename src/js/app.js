@@ -15,24 +15,47 @@ window.onload = function() {
 
   // setupNodeProvider();
 };
-var nodeProvider = new NodeProvider();
-var appFactory;
-nodeProvider.connect().then(setupCfProvider);
+
+var stateEncoding = `
+      tuple(
+        address[2] playerAddrs,
+        uint8 stage,
+        bytes32 salt,
+        bytes32 commitHash,
+        uint256 playerFirstNumber,
+        uint256 playerSecondNumber
+      )
+    `;
+var actionEncoding = `
+      tuple(
+        uint8 actionType,
+        uint256 number,
+        bytes32 actionHash,
+      )
+    `;
+
+function setupNodeProvider() {
+  var nodeProvider = new NodeProvider();
+  nodeProvider.connect().then(setupCfProvider);
+}
 
 function setupCfProvider(provider) {
   var cfProvider = new cf.Provider(provider);
-  cfProvider.on("updateState", onUpdateState);
+  cfProvider.on("updateStateEvent", onUpdateState);
   cfProvider.on("install", onInstall);
 
-  appFactory = new cf.AppFactory(
-    "0x2380938509324ajfskdfja1ajsd390842934",
-    {},
+  window.appFactory = new cf.AppFactory(
+    "0x6296F3ACf03b6D787BD1068B4DB8093c54d5d915",
+    {
+      actionEncoding: actionEncoding,
+      stateEncoding: stateEncoding
+    },
     cfProvider
   );
 
   var betAmount = "0.01";
   var initialState = {
-    playerAddrs: ["0x54321", "0x12345"],
+    playerAddrs: [web3.eth.accounts[0], web3.eth.accounts[0]],
     stage: 0,
     salt: ethers.constants.HashZero,
     commitHash: ethers.constants.HashZero,
@@ -40,22 +63,22 @@ function setupCfProvider(provider) {
     playerSecondNumber: 0
   };
 
-  appFactory.proposeInstallVirtual({
+  window.appFactory.proposeInstallVirtual({
     initialState,
-    respondingAddress: "0x12345",
+    respondingAddress: web3.eth.accounts[0],
     asset: {
       assetType: 0 /* AssetType.ETH */
     },
     peerDeposit: ethers.utils.parseEther(betAmount),
     myDeposit: ethers.utils.parseEther(betAmount),
     timeout: 10000,
-    intermediaries: ["0x123123123"]
+    intermediaries: [""]
   });
 }
 
 function onUpdateState(data) {
   // eslint-disable-next-line
-  console.log('the bot moved and the new state is: ', newStdataate);
+  console.log("the bot moved and the new state is: ", newStdataate);
   // the game is over, let's see who won?
   if (data.playerSecondNumber > data.playerFirstNumber) {
     document.getElementById("message").innerText = "YOU LOSE!";
@@ -65,9 +88,15 @@ function onUpdateState(data) {
 }
 
 function onInstall(data) {
+  window.appInstance = data.data.appInstance;
   console.log("On Install Callback");
-  appFactory.takeAction("START_GAME");
-  document.getElementById("rollDiceButton").show();
+  var startGameAction = {
+    number: 0,
+    actionType: 0,
+    actionHash: ethers.constants.HashZero
+  };
+  window.appInstance.takeAction(startGameAction);
+  // document.getElementById("rollDiceButton").show();
 }
 
 window.startGame = function startGame() {
@@ -81,6 +110,14 @@ window.rollDice = function rollDice() {
     actionHash: ethers.utils.keccak256(salt + (Math.random() % 12))
   });
 };
+
+function encodeState(state) {
+  return ethers.utils.defaultAbiCoder.encode([stateEncoding], [state]);
+}
+
+function encodeAction(state) {
+  return ethers.utils.defaultAbiCoder.encode([actionEncoding], [state]);
+}
 
 /* App = {
   web3Provider: null,

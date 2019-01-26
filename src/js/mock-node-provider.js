@@ -24,7 +24,7 @@ class NodeProvider {
         "It's not possible to use postMessage() before the NodeProvider is connected. Call the connect() method first."
       );
     }
-    
+
     console.log("message in", message);
     const appInstanceId = `app-instance-${new Date().valueOf()}`;
     switch (message.type) {
@@ -57,6 +57,31 @@ class NodeProvider {
           1
         );
         break;
+      case "takeAction":
+        var { number, actionType, actionHash } = message.params.action;
+        if (actionType === 0) {
+          //START_GAME
+          const newState = {
+            playerAddrs: [web3.eth.accounts[0], web3.eth.accounts[0]],
+            stage: 1,
+            salt: ethers.constants.HashZero,
+            commitHash: ethers.constants.HashZero,
+            playerFirstNumber: 0,
+            playerSecondNumber: 0
+          };
+          this.sendCallback(
+            {
+              type: "takeAction",
+              result: {
+                appInstance: { id: message.params.appInstanceId },
+                newState
+              },
+              requestId: message.requestId
+            },
+            1
+          );
+        }
+        break;
       default:
         console.error("Unhandled message in MockNodeProvider:", message);
     }
@@ -68,7 +93,7 @@ class NodeProvider {
     }, timeout);
   }
 
-  async connect(){
+  async connect() {
     if (this.isConnected) {
       console.warn("NodeProvider is already connected.");
       return Promise.resolve(this);
