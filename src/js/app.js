@@ -1,20 +1,21 @@
 var nodeProvider = new NodeProvider();
 var appFactory;
-nodeProvider.connect().then(setupCfProvider)
+nodeProvider.connect().then(setupCfProvider);
 
 function setupCfProvider(provider) {
-  var cfProvider = new cf.Provider(nodeProvider);
+  var cfProvider = new cf.Provider(provider);
   cfProvider.on("updateState", onUpdateState);
   cfProvider.on("install", onInstall);
 
-  appFactory = new cf.AppFactory("0x2380938509324ajfskdfja1ajsd390842934", {}, cfProvider);
+  appFactory = new cf.AppFactory(
+    "0x2380938509324ajfskdfja1ajsd390842934",
+    {},
+    cfProvider
+  );
 
   var betAmount = "0.01";
   var initialState = {
-    playerAddrs: [
-      "0x54321",
-      "0x12345"
-    ],
+    playerAddrs: ["0x54321", "0x12345"],
     stage: 0,
     salt: ethers.constants.HashZero,
     commitHash: ethers.constants.HashZero,
@@ -47,7 +48,7 @@ function onUpdateState(data) {
 }
 
 function onInstall(data) {
-  console.log("On Install Callback")
+  console.log("On Install Callback");
   appFactory.takeAction("START_GAME");
   document.getElementById("rollDiceButton").show();
 }

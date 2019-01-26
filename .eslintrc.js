@@ -17,6 +17,7 @@ module.exports = {
     },
     globals: {
         cf: true,
-        ethers: true
+        ethers: true,
+        NodeProvider: true
     }
 };

@@ -1,7 +1,5 @@
-**/*.min.js
+bootstrap.min.js
+web3.min.js
 truffle-contract.js
 truffle-config.js
-cfjs-iife.js
-ethers.js
-eventemitter3.js
-types-iife.js
+mock-node-provider.js
