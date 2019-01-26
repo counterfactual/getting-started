@@ -1,3 +1,20 @@
+var App = { web3Provider: null, contracts: {} };
+
+window.onload = function() {
+  // Initialize web3 and set the provider to the testRPC.
+  if (typeof ethereum !== "undefined") {
+    App.web3Provider = ethereum;
+    web3 = new Web3(ethereum);
+    ethereum.enable().then(setupNodeProvider);
+  }
+  // } else {
+  //   // set the provider you want from Web3.providers
+  //   App.web3Provider = new Web3.providers.HttpProvider("http://127.0.0.1:9545");
+  //   web3 = new Web3(App.web3Provider);
+  // }
+
+  // setupNodeProvider();
+};
 var nodeProvider = new NodeProvider();
 var appFactory;
 nodeProvider.connect().then(setupCfProvider);
