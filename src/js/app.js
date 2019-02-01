@@ -35,7 +35,7 @@ var actionEncoding = `
     `;
 
 function setupNodeProvider() {
-  var nodeProvider = new NodeProvider();
+  var nodeProvider = new cf.NodeProvider();
   nodeProvider.connect().then(setupCfProvider);
 }
 
