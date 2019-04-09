@@ -169,16 +169,16 @@ async function onUpdateEvent({ data }) {
     playerFirstNumber: currentGame.playerFirstNumber
   };
 
-  if (highRollercurrentGame.stage === HighRollerStage.REVEALING) {
+  if (highRollerState.stage === HighRollerStage.REVEALING) {
     await currentGame.appInstance.takeAction({
       actionType: HighRollerAction.REVEAL,
       actionHash: numberSalt,
-      number: highRollercurrentGame.playerFirstNumber.toString()
+      number: highRollerState.playerFirstNumber.toString()
     });
-  } else if (highRollercurrentGame.stage === HighRollerStage.DONE) {
+  } else if (highRollerState.stage === HighRollerStage.DONE) {
     const rolls = await executeContract(
-      highRollercurrentGame.playerFirstNumber,
-      highRollercurrentGame.playerSecondNumber
+      highRollerState.playerFirstNumber,
+      highRollerState.playerSecondNumber
     );
 
     const { myRoll, opponentRoll } = determineRolls(highRollerState, rolls);
@@ -206,7 +206,7 @@ function resetApp() {
 async function roll() {
   disableButton();
 
-  if (currentGame.highRollercurrentGame.stage === HighRollerStage.PRE_GAME) {
+  if (currentGame.highRollerState.stage === HighRollerStage.PRE_GAME) {
     const startGameAction = {
       number: 0,
       actionType: HighRollerAction.START_GAME,
@@ -256,9 +256,9 @@ async function roll() {
 
 // UI
 function updateUIState(uiState) {
-  document.querySelector("#gameResult").innerHTML = announceGameState(uicurrentGame.gameState);
-  document.querySelector("#yourRoll").innerHTML = `Your roll: ${uicurrentGame.myRoll[0]} + ${uicurrentGame.myRoll[1]}`;
-  document.querySelector("#opponentRoll").innerHTML = `Their roll: ${uicurrentGame.opponentRoll[0]} + ${uicurrentGame.opponentRoll[1]}`;
+  document.querySelector("#gameResult").innerHTML = announceGameState(uiState.gameState);
+  document.querySelector("#yourRoll").innerHTML = `Your roll: ${uiState.myRoll[0]} + ${uiState.myRoll[1]}`;
+  document.querySelector("#opponentRoll").innerHTML = `Their roll: ${uiState.opponentRoll[0]} + ${uiState.opponentRoll[1]}`;
 }
 
 function announceGameState(gameState) {
@@ -300,7 +300,7 @@ function generatePlayerNumber() {
 }
 
 function determineRolls(newState, rolls) {
-  const isProposing = newcurrentGame.stage === HighRollerStage.REVEALING;
+  const isProposing = newState.stage === HighRollerStage.REVEALING;
   const myRoll = isProposing ? rolls.playerFirstRoll : rolls.playerSecondRoll;
   const opponentRoll = isProposing
     ? rolls.playerSecondRoll
