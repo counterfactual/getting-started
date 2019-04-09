@@ -207,50 +207,37 @@ async function roll() {
   disableButton();
 
   if (currentGame.highRollerState.stage === HighRollerStage.PRE_GAME) {
-    const startGameAction = {
+    await takeAction({
       number: 0,
       actionType: HighRollerAction.START_GAME,
       actionHash: HashZero
-    };
-
-    currentGame.highRollerState = (await currentGame.appInstance.takeAction(
-      startGameAction
-    ));
+    });
 
     const playerFirstNumber = generatePlayerNumber();
-      
-    const hash = solidityKeccak256(
-      ["bytes32", "uint256"],
-      [numberSalt, playerFirstNumber]
-    );
 
-    const commitHashAction = {
+    await takeAction({
       number: 0,
       actionType: HighRollerAction.COMMIT_TO_HASH,
-      actionHash: hash
-    };
+      actionHash: solidityKeccak256(
+        ["bytes32", "uint256"],
+        [numberSalt, playerFirstNumber]
+      )
+    });
 
-    currentGame.playerFirstNumber = bigNumberify(playerFirstNumber);
-
-    currentGame.highRollerState = {
-      ...((await currentGame.appInstance.takeAction(
-        commitHashAction
-      ))),
-      playerFirstNumber: currentGame.playerFirstNumber
-    };
+    currentGame.highRollerState.playerFirstNumber = currentGame.playerFirstNumber = bigNumberify(playerFirstNumber);
   } else {
-    const playerSecondNumber = generatePlayerNumber();
-
-    const commitHashAction = {
-      number: playerSecondNumber,
+    await takeAction({
+      number: generatePlayerNumber(),
       actionType: HighRollerAction.COMMIT_TO_NUM,
       actionHash: HashZero
-    };
-
-    currentGame.highRollerState = (await currentGame.appInstance.takeAction(
-      commitHashAction
-    ));
+    });
   }
+}
+
+async function takeAction(params) {
+  currentGame.highRollerState = (await currentGame.appInstance.takeAction(
+    params
+  ));
 }
 
 
