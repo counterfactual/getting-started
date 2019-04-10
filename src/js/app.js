@@ -27,7 +27,7 @@ const numberSalt =
 let web3Provider, nodeProvider, currentGame, account;
 
 async function run() {
-  account = (await getUserData()).data.user;
+  account = await getUserData();
   
   bindEvents();
   await initWeb3();
@@ -36,6 +36,8 @@ async function run() {
   await install();
 }
 
+
+// GENERAL ETH SETUP
 function bindEvents() {
   document.querySelector('#rollBtn').addEventListener("click", roll);
 }
@@ -72,44 +74,8 @@ async function initContract() {
   HighRollerApp.setProvider(web3Provider);
 }
 
-async function executeContract(
-  num1,
-  num2
-) {
-  const randomness = solidityKeccak256(["uint256"], [num1.mul(num2)]);
 
-  // Connect to the network
-  const provider = new ethers.providers.Web3Provider(web3.currentProvider);
-
-  // We connect to the Contract using a Provider, so we will only
-  // have read-only access to the Contract
-  const contract = new ethers.Contract(contractAddress, abi, provider);
-
-  const result = await contract.highRoller(randomness);
-
-  return {
-    playerFirstRoll: getDieNumbers(result[0]),
-    playerSecondRoll: getDieNumbers(result[1])
-  };
-}
-
-function getDieNumbers(totalSum) {
-  // Choose result for each die.
-  if (totalSum === 12) {
-    return [6, 6];
-  }
-
-  if (totalSum > 2 && totalSum < 12) {
-    return [Math.floor(totalSum / 2), Math.ceil(totalSum / 2)];
-  }
-
-  if (totalSum > 2 && totalSum % 2 === 0) {
-    return [Math.floor(totalSum / 2) - 1, Math.ceil(totalSum / 2) + 1];
-  }
-
-  return [totalSum / 2, totalSum / 2];
-}
-
+// COUNTERFACTUAL
 async function setupCF() {
   nodeProvider = new cf.NodeProvider();
   await nodeProvider.connect();
@@ -124,7 +90,14 @@ async function install() {
     stateEncoding: "tuple(address[2] playerAddrs, uint8 stage, bytes32 salt, bytes32 commitHash, uint256 playerFirstNumber, uint256 playerSecondNumber)"
   }, cfProvider);
 
-  const { intermediary, nodeAddress } = (await getOpponentData()).data.attributes;
+  proposeInstall(appFactory);
+
+  cfProvider.on('installVirtual', onInstallEvent);
+  cfProvider.on('updateState', onUpdateEvent);
+}
+
+async function proposeInstall(appFactory) {
+  const { intermediary, nodeAddress } = await getOpponentData();
   const betAmount = '0.00001';
 
   await appFactory.proposeInstallVirtual({
@@ -152,9 +125,6 @@ async function install() {
     timeout: 172800,
     intermediaries: [intermediary]
   });
-
-  cfProvider.on('installVirtual', onInstallEvent);
-  cfProvider.on('updateState', onUpdateEvent);
 }
 
 async function onInstallEvent(event) {
@@ -170,37 +140,39 @@ async function onUpdateEvent({ data }) {
   };
 
   if (highRollerState.stage === HighRollerStage.REVEALING) {
-    await currentGame.appInstance.takeAction({
-      actionType: HighRollerAction.REVEAL,
-      actionHash: numberSalt,
-      number: highRollerState.playerFirstNumber.toString()
-    });
+    await revealDice(highRollerState);
   } else if (highRollerState.stage === HighRollerStage.DONE) {
-    const rolls = await executeContract(
-      highRollerState.playerFirstNumber,
-      highRollerState.playerSecondNumber
-    );
-
-    const { myRoll, opponentRoll } = determineRolls(highRollerState, rolls);
-    const gameState = determineGameState(myRoll, opponentRoll);
-
-    updateUIState({
-      myRoll,
-      opponentRoll,
-      gameState,
-      highRollerState
-    });
-
-    await currentGame.appInstance.uninstall(currentGame.appInstance.intermediaries[0]);
-
-    resetApp();
+    await completeGame(highRollerState);
   }
 }
 
-function resetApp() {
-  hideButton();
-  enableButton();
-  install();
+async function revealDice(highRollerState) {
+  await currentGame.appInstance.takeAction({
+    actionType: HighRollerAction.REVEAL,
+    actionHash: numberSalt,
+    number: highRollerState.playerFirstNumber.toString()
+  });
+}
+
+async function completeGame(highRollerState) {
+  const rolls = await executeContract(
+    highRollerState.playerFirstNumber,
+    highRollerState.playerSecondNumber
+  );
+
+  const { myRoll, opponentRoll } = determineRolls(highRollerState, rolls);
+  const gameState = determineGameState(myRoll, opponentRoll);
+
+  updateUIState({
+    myRoll,
+    opponentRoll,
+    gameState,
+    highRollerState
+  });
+
+  await currentGame.appInstance.uninstall(currentGame.appInstance.intermediaries[0]);
+
+  resetApp();
 }
 
 async function roll() {
@@ -238,6 +210,46 @@ async function takeAction(params) {
   currentGame.highRollerState = (await currentGame.appInstance.takeAction(
     params
   ));
+}
+
+
+// CONTRACT EXECUTION
+async function executeContract(
+  num1,
+  num2
+) {
+  const randomness = solidityKeccak256(["uint256"], [num1.mul(num2)]);
+
+  // Connect to the network
+  const provider = new ethers.providers.Web3Provider(web3.currentProvider);
+
+  // We connect to the Contract using a Provider, so we will only
+  // have read-only access to the Contract
+  const contract = new ethers.Contract(contractAddress, abi, provider);
+
+  const result = await contract.highRoller(randomness);
+
+  return {
+    playerFirstRoll: getDieNumbers(result[0]),
+    playerSecondRoll: getDieNumbers(result[1])
+  };
+}
+
+function getDieNumbers(totalSum) {
+  // Choose result for each die.
+  if (totalSum === 12) {
+    return [6, 6];
+  }
+
+  if (totalSum > 2 && totalSum < 12) {
+    return [Math.floor(totalSum / 2), Math.ceil(totalSum / 2)];
+  }
+
+  if (totalSum > 2 && totalSum % 2 === 0) {
+    return [Math.floor(totalSum / 2) - 1, Math.ceil(totalSum / 2) + 1];
+  }
+
+  return [totalSum / 2, totalSum / 2];
 }
 
 
@@ -317,12 +329,18 @@ function resetGameState() {
   };
 }
 
+function resetApp() {
+  hideButton();
+  enableButton();
+  install();
+}
+
 async function getUserData() {
-  return requestDataFromPG("playground:request:user", "playground:response:user");
+  return (await requestDataFromPG("playground:request:user", "playground:response:user")).data.user;
 }
 
 async function getOpponentData() {
-  return requestDataFromPG("playground:request:matchmake", "playground:response:matchmake");
+  return (await requestDataFromPG("playground:request:matchmake", "playground:response:matchmake")).data.attributes;
 }
 
 async function requestDataFromPG(requestName, responseName) {
