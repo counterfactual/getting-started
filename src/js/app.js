@@ -325,8 +325,8 @@ async function getUserData() {
 
 async function getOpponentData() {
   return {
-    nodeAddress: "xpub6DkjmzWidmCQHEh7EtLxxWWL29HNgC1npeqfXL4BhKGXYw6YGgcfpXra44VVbo2pKLDCpkQvkLJ1SZ5YvCPYnD6bPKSgBqKPWd1Y5HUBZu9",
-    intermediary: "xpub6EozQuWo9XYTkRjVo8963EDqiqbMF7VqFuKDjc3sfkPXfrufRjNVhfbqWBXiz7F57guSyfYphGUsDusyb1TD28SoXQ1rdvpttt82vLoz38E"
+    nodeAddress: "xpub6EtUa2JZ1pqUU5TC4Le5ekCs2nX4EpcUe8zozDpejf3fs73c8Bjw5VKwgc6crjQUz2uoU4zCT1uUTqExpa9JPXeRxiyiMiajdH5xCarcbCp",
+    intermediary: "xpub6DzwYx3J66PBz87nYLgnyRSBkfagNmbt68S1gcrm92Fu1JTG8XSDkYWjiAjwn3hm9eas89g6Vivrb3BKC6mL8FZHEJ6d8cVdAxJKGBGQUbr"
   }
 }
 
