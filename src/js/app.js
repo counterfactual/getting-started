@@ -327,30 +327,24 @@ async function getOpponentData() {
 
 async function requestDataFromPG(requestName, responseName) {
   return await new Promise(resolve => {
-    let gotResponse = false; // Needed because MM sends multiple messages
-    const onMatchmakeResponse = (event) => {
+    const onPGResponse = (event) => {
       if (event.data.toString().startsWith(responseName)) {
-        window.removeEventListener("message", onMatchmakeResponse);
+        window.removeEventListener("message", onPGResponse);
 
         const [, data] = event.data.split("|");
         resolve(JSON.parse(data));
-      }
-      if (
+      } else if (
         event.data.data &&
         typeof event.data.data.message === "string" &&
         event.data.data.message.startsWith(responseName)
       ) {
-        if (gotResponse) {
-          return;
-        }
-        gotResponse = true;
-        console.log("requested data! ", event.data.data);
-        const opponent = { data: event.data.data.data };
-        resolve(opponent);
+        window.removeEventListener("message", onPGResponse);
+
+        resolve({ data: event.data.data.data });
       }
     };
 
-    window.addEventListener("message", onMatchmakeResponse);
+    window.addEventListener("message", onPGResponse);
 
     if (window === window.parent) {
       // dApp not running in iFrame
