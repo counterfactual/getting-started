@@ -14,28 +14,20 @@
     </style>
   </head>
   <body>
-    <div class="container">
-      <div class="row">
-        <div class="col-xs-12 col-sm-8 col-sm-push-2">
-          <h1 class="text-center">High Roller</h1>
-          <hr/>
-          <br/>
-        </div>
-      </div>
+    <h1>High Roller</h1>
 
-      <div id="gameScreen" class="row">
-        <div id="yourRoll"></div>
-        <div id="opponentRoll"></div>
-        <div id="gameResult"></div>
-      </div>
+    <div id="gameScreen">
+      <div id="yourRoll"></div>
+      <div id="opponentRoll"></div>
+      <div id="gameResult"></div>
+    </div>
 
-      <div id="loadingSection" class="row">
-        <div>Loading</div>
-      </div>
+    <div id="loadingSection">
+      <div>Loading</div>
+    </div>
 
-      <div id="rollSection" class="row hidden">
-        <button id="rollBtn" class="btn btn-default btn-roll" type="button" data-id="0">Roll</button>
-      </div>
+    <div id="rollSection" class="hidden">
+      <button id="rollBtn" type="button">Roll</button>
     </div>
 
     <script src="//high-roller-staging.counterfactual.com/assets/ethers.js"></script>
