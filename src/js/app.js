@@ -27,7 +27,7 @@ const numberSalt =
 let web3Provider, nodeProvider, currentGame, account;
 
 async function run() {
-  account = await getUserData();
+  account = (await getUserData()).data.user;
   
   bindEvents();
   await initWeb3();
@@ -124,7 +124,7 @@ async function install() {
     stateEncoding: "tuple(address[2] playerAddrs, uint8 stage, bytes32 salt, bytes32 commitHash, uint256 playerFirstNumber, uint256 playerSecondNumber)"
   }, cfProvider);
 
-  const { intermediary, nodeAddress } = await getOpponentData();
+  const { intermediary, nodeAddress } = (await getOpponentData()).data.attributes;
   const betAmount = '0.00001';
 
   await appFactory.proposeInstallVirtual({
@@ -191,7 +191,7 @@ async function onUpdateEvent({ data }) {
       highRollerState
     });
 
-    await currentGame.appInstance.uninstall(intermediaryAddress);
+    await currentGame.appInstance.uninstall(currentGame.appInstance.intermediaries[0]);
 
     resetApp();
   }
@@ -318,16 +318,47 @@ function resetGameState() {
 }
 
 async function getUserData() {
-  return {
-    nodeAddress: "xpub6DbpxMVmrS3HMHTMBM29JkS9rwDLboMNg6UvXb9Ptpk9h1QHMkkebh6JqTCaTJyor4fuwbmsm4QokGHbpuxdxVVr3frT6mcknJcKVxnpP2W"
-  }
+  return requestDataFromPG("playground:request:user", "playground:response:user");
 }
 
 async function getOpponentData() {
-  return {
-    nodeAddress: "xpub6EtUa2JZ1pqUU5TC4Le5ekCs2nX4EpcUe8zozDpejf3fs73c8Bjw5VKwgc6crjQUz2uoU4zCT1uUTqExpa9JPXeRxiyiMiajdH5xCarcbCp",
-    intermediary: "xpub6DzwYx3J66PBz87nYLgnyRSBkfagNmbt68S1gcrm92Fu1JTG8XSDkYWjiAjwn3hm9eas89g6Vivrb3BKC6mL8FZHEJ6d8cVdAxJKGBGQUbr"
-  }
+  return requestDataFromPG("playground:request:matchmake", "playground:response:matchmake");
+}
+
+async function requestDataFromPG(requestName, responseName) {
+  return await new Promise(resolve => {
+    const onPGResponse = (event) => {
+      if (event.data.toString().startsWith(responseName)) {
+        window.removeEventListener("message", onPGResponse);
+
+        const [, data] = event.data.split("|");
+        resolve(JSON.parse(data));
+      } else if (
+        event.data.data &&
+        typeof event.data.data.message === "string" &&
+        event.data.data.message.startsWith(responseName)
+      ) {
+        window.removeEventListener("message", onPGResponse);
+
+        resolve({ data: event.data.data.data });
+      }
+    };
+
+    window.addEventListener("message", onPGResponse);
+
+    if (window === window.parent) {
+      // dApp not running in iFrame
+      window.postMessage(
+        {
+          type: "PLUGIN_MESSAGE",
+          data: { message: requestName }
+        },
+        "*"
+      );
+    } else {
+      window.parent.postMessage(requestName, "*");
+    }
+  })
 }
 
 
