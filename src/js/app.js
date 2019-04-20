@@ -335,9 +335,7 @@ function resetApp() {
 }
 
 function generateSalt() {
-  return [...Array(6).keys()].reduce((salt) => {
-    return salt + Math.random().toString(36).substring(2, 13);
-  }, "");
+  return ethers.utils.bigNumberify(ethers.utils.randomBytes(32)).toHexString();
 }
 
 async function getUserData() {
