@@ -21,8 +21,6 @@ const abi = [
   "function highRoller(bytes32 randomness) public pure returns(uint8 playerFirstTotal, uint8 playerSecondTotal)"
 ];
 const contractAddress = '0x91907355C59BA005843E791c88aAB80b779446c9';
-const numberSalt =
-"0xdfdaa4d168f0be935a1e1d12b555995bc5ea67bd33fce1bc5be0a1e0a381fc90";
 
 let web3Provider, nodeProvider, currentGame, account;
 
@@ -149,7 +147,7 @@ async function onUpdateEvent({ data }) {
 async function revealDice(highRollerState) {
   await currentGame.appInstance.takeAction({
     actionType: HighRollerAction.REVEAL,
-    actionHash: numberSalt,
+    actionHash: currentGame.salt,
     number: highRollerState.playerFirstNumber.toString()
   });
 }
@@ -192,7 +190,7 @@ async function roll() {
       actionType: HighRollerAction.COMMIT_TO_HASH,
       actionHash: solidityKeccak256(
         ["bytes32", "uint256"],
-        [numberSalt, playerFirstNumber]
+        [currentGame.salt, playerFirstNumber]
       )
     });
 
@@ -325,7 +323,8 @@ function resetGameState() {
   currentGame = {
     highRollerState: {
       stage: HighRollerStage.PRE_GAME
-    }
+    },
+    salt: generateSalt()
   };
 }
 
@@ -333,6 +332,10 @@ function resetApp() {
   hideButton();
   enableButton();
   install();
+}
+
+function generateSalt() {
+  return ethers.utils.bigNumberify(ethers.utils.randomBytes(32)).toHexString();
 }
 
 async function getUserData() {
